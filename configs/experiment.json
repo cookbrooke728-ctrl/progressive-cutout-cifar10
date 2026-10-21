@@ -1,0 +1,13 @@
+{
+  "data": "data",
+  "output": "runs",
+  "device": "cuda",
+  "epochs": 100,
+  "batch_size": 128,
+  "seeds": [42, 43, 44],
+  "methods": ["baseline", "cutout", "matched", "progressive"],
+  "selection": "best clean validation accuracy, earliest epoch on ties",
+  "primary_metric": "clean test top1 accuracy",
+  "secondary_metric": "mean accuracy across lengths 8,16,24 and three fixed positions",
+  "test_tuning": false
+}

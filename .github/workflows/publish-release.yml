@@ -1,0 +1,57 @@
+name: Publish audited course experiment
+
+on:
+  push:
+    branches: [main]
+    paths: [.release-ready]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: course-release-v1
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Restore already trained weights and check hashes
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shutil
+          manifest = json.loads(pathlib.Path('weights/manifest.json').read_text())
+          assert len(manifest['weights']) == 12
+          for entry in manifest['weights']:
+              source = pathlib.Path('weights') / entry['filename']
+              assert hashlib.sha256(source.read_bytes()).hexdigest() == entry['sha256']
+              target = pathlib.Path('runs') / entry['run'] / 'best.pt'
+              target.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copyfile(source, target)
+          PY
+      - name: Package audited files without installing ML dependencies
+        env:
+          REPOSITORY_URL: https://github.com/${{ github.repository }}
+        run: python3 scripts/package_release.py --repository-url "$REPOSITORY_URL"
+      - name: Publish all assets after upload completes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view v1.0.0 --json isDraft --jq .isDraft > .release-draft-state; then
+            if grep -qx false .release-draft-state; then
+              echo "Release already published"
+              exit 0
+            fi
+          else
+            gh release create v1.0.0 --draft --target "$GITHUB_SHA" --title "CIFAR-10 Cutout reproduction v1.0.0" --notes-file release-assets/RELEASE_NOTES.md
+          fi
+          gh release upload v1.0.0 release-assets/* --clobber
+          gh release edit v1.0.0 --draft=false --latest
