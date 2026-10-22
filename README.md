@@ -111,6 +111,8 @@ Every validation-selected weight is provided; no seed selection.
 
 `scripts/verify_downloaded_weights.py` downloads all 12 public weights, checks their SHA-256 and reruns the full clean/occluded test protocol.
 
+All 12 published weights have passed this download and full evaluation check. See `output/download_verification.json` and `output/publication_verification.json` for the recorded evidence.
+
 ## Build the paper
 
 After `report`, install `python-docx` in a document environment and run `python paper/build_paper.py`.

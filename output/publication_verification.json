@@ -1,0 +1,29 @@
+{
+  "repository_url": "https://github.com/cookbrooke728-ctrl/progressive-cutout-cifar10",
+  "release_url": "https://github.com/cookbrooke728-ctrl/progressive-cutout-cifar10/releases/tag/v1.0.0",
+  "release_commit": "39d540d7b3b18c87cf37eec38b680413d4086b36",
+  "workflow_run_id": 39792598946,
+  "workflow_conclusion": "success",
+  "manifest_semantically_identical": true,
+  "public_binary_checksums_match_local": true,
+  "binary_assets_checked": [
+    "baseline_seed42_best.pt",
+    "baseline_seed43_best.pt",
+    "baseline_seed44_best.pt",
+    "cutout_seed42_best.pt",
+    "cutout_seed43_best.pt",
+    "cutout_seed44_best.pt",
+    "experiment_evidence.zip",
+    "matched_seed42_best.pt",
+    "matched_seed43_best.pt",
+    "matched_seed44_best.pt",
+    "progressive_cutout_paper.docx",
+    "progressive_cutout_paper.pdf",
+    "progressive_seed42_best.pt",
+    "progressive_seed43_best.pt",
+    "progressive_seed44_best.pt"
+  ],
+  "evidence_sha256": "a1deb537d64f1f68621f0353dfef16c5268c33be90ee53607aec8928ff48836a",
+  "all_12_downloaded_weights_reproduce_metrics": true,
+  "verified_utc": "2026-10-22T14:14:11.110738+00:00"
+}
