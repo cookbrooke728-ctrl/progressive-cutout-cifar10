@@ -19,16 +19,24 @@ def make_pages(summary, publication):
     dm = paired["progressive_minus_matched"]
     db = paired["cutout_minus_baseline"]
     dc = paired["progressive_minus_cutout"]
+    early_delta = m["progressive"]["early_validation_mean"]["mean"] - m["matched"]["early_validation_mean"]["mean"]
+    early_interpretation = ("这一早期均值差与降低初期增强强度可能有助于拟合的假设一致，但不能证明它导致最终收益。"
+                            if early_delta > 0 else "这一早期均值差未支持降低初期遮挡概率就能改善收敛的直观解释，说明增强难度与优化表现并非简单对应。")
     category_names = ["飞机", "汽车", "鸟", "猫", "鹿", "狗", "蛙", "马", "船", "卡车"]
     category_differences = [a-b for a, b in zip(m["progressive"]["per_class"], m["baseline"]["per_class"])]
     best_class = max(range(10), key=lambda i: category_differences[i])
     worst_class = min(range(10), key=lambda i: category_differences[i])
+    best_categories = "、".join(category_names[i] for i, v in enumerate(category_differences) if abs(v - category_differences[best_class]) < 1e-9)
+    worst_categories = "、".join(category_names[i] for i, v in enumerate(category_differences) if abs(v - category_differences[worst_class]) < 1e-9)
     if dm["accuracy"]["mean"] >= 0 and dm["mean_occluded_accuracy"]["mean"] >= 0:
         finding = "渐进方案在本实验中同时取得不低于等强度固定概率对照的平均干净准确率和遮挡准确率，但其稳定性仍需更多重复实验验证"
+        finding_en = "The progressive schedule attains mean values at least as high as the matched control on both metrics, although more repetitions are needed to assess stability. "
     elif dm["accuracy"]["mean"] < 0 and dm["mean_occluded_accuracy"]["mean"] < 0:
         finding = "渐进方案在本配置下未优于等强度固定概率对照，说明简单地增加遮挡概率不能保证改善泛化"
+        finding_en = "The progressive schedule does not outperform the matched control in this configuration, so increasing occlusion probability does not guarantee better generalization. "
     else:
         finding = "渐进方案与固定概率对照在干净分类和遮挡识别之间呈现性能取舍，调度收益依赖具体评价条件"
+        finding_en = "The progressive schedule exhibits a trade-off between clean and occluded performance, with benefits depending on the evaluation condition. "
     abstract = (
         "随机遮挡是一种实现简单的数据增强方法，但其训练强度及时间顺序的作用容易混淆。"
         "本文复现 Cutout，并在 CIFAR-10 上研究遮挡概率随训练轮次线性递增的方案。"
@@ -37,6 +45,7 @@ def make_pages(summary, publication):
         "固定概率组与渐进组具有相同的平均期望遮挡概率，用于控制增强总量。"
         f"渐进方案的干净测试准确率为{score('progressive')}%，人工遮挡平均准确率为{score('progressive','mean_occluded_accuracy')}%；"
         f"相对等强度固定概率对照，两项指标分别变化{change('progressive_minus_matched')}和{change('progressive_minus_matched','mean_occluded_accuracy')}个百分点。"
+        f"相对始终遮挡组，两项指标分别变化{change('progressive_minus_cutout')}和{change('progressive_minus_cutout','mean_occluded_accuracy')}个百分点，显示干净性能与遮挡性能的取舍。"
         f"{finding}。本文公开实验配置、原始日志、逐样本预测和全部对应权重，为资源受限条件下的数据增强研究提供可核验的实验记录。"
     )
     english = (
@@ -47,6 +56,8 @@ def make_pages(summary, publication):
         "The last two strategies have equal expected mean occlusion probability. "
         f"Progressive Cutout achieves {score('progressive')}% clean test accuracy and {score('progressive','mean_occluded_accuracy')}% mean accuracy under synthetic square occlusion. "
         f"Its paired mean differences from the constant-probability control are {change('progressive_minus_matched')} and {change('progressive_minus_matched','mean_occluded_accuracy')} percentage points, respectively. "
+        f"Compared with always-on Cutout, the differences are {change('progressive_minus_cutout')} and {change('progressive_minus_cutout','mean_occluded_accuracy')} points, indicating a clean-versus-occluded performance trade-off. "
+        f"{finding_en}"
         "Training curves, class-wise results, paired seed differences, and both improved and regressed examples are examined. "
         "These descriptive findings are limited to the chosen network, dataset, and artificial occlusion protocol. "
         "Configurations, logs, per-example predictions, and corresponding checkpoints support reproducibility."
@@ -94,14 +105,14 @@ def make_pages(summary, publication):
         p("基础增强先在原始像素域四周补4像素零值，再随机裁剪32×32区域，并以0.5概率水平翻转。随后使用训练部分计算的均值和标准差归一化。遮挡中心在32×32网格均匀采样，方块边长为16，超出图像的部分裁去；遮挡位置在归一化后填0，相当于原像素域的各通道训练均值。图2仅展示可见遮挡效果，其样例位置固定，不用于选择训练超参数。"),
         fig("fig2_examples.png", "图2 五类原图与均值填充的16×16遮挡示例，上排原图，下排遮挡图。", 11.0),
         ("eq", "x' = (1 - M) ⊙ x"),
-        p("其中M在被遮挡像素处取1，其余处取0，三个颜色通道共用同一个空间掩码。一次遮挡最多移除256个像素；由于训练方块允许越界，实际移除面积通常更小。概率调度控制是否施加掩码，方块边长和中心采样分布始终保持不变。"),
+        p("其中M在被遮挡像素处取1，其余处取0，三个颜色通道共用同一个空间掩码。一次遮挡最多移除256个像素；由于训练方块允许越界，实际移除面积通常更小。本中心采样下，单轴平均遮挡长度为14，独立两轴的平均面积为196像素，占图像19.141%；概率0.5时全程期望覆盖量为9.570%。概率调度控制是否施加掩码，方块边长和中心采样分布始终保持不变。"),
         h2("3.3 渐进概率与等强度对照"),
         ("eq", "p(e) = (e - 1) / (E - 1),    e = 1, …, E"),
         p("每张图像独立采样均匀随机数u，满足u<p(e)时施加遮挡。由于所有轮次等长且端点同时包含0和1，渐进组的平均期望概率严格为0.5。固定概率组取p=0.5，因而二者在期望上具有相同遮挡次数和像素覆盖量；有限样本的实际遮挡次数仍有随机差异，日志同时记录实际遮挡图像数与面积，用于检查这一点。"),
         table("表1 四组策略及主要比较目的", ["组别", "遮挡概率", "比较目的"], [
             ["A 基线", "0", "普通裁剪翻转参考"], ["B 原版", "1", "经典Cutout效果"],
             ["C 固定对照", "0.5", "控制平均期望增强量"], ["D 渐进方案", "(e-1)/(E-1)", "检验时间调度"]], [3.2, 4.2, 8.3]),
-        p("同一训练种子下，四组共享网络初始化、每轮样本顺序、裁剪位置与翻转状态。遮挡随机数由独立流生成，避免有无遮挡改变基础增强的随机序列。训练目标统一为真实类别上的交叉熵，不改变标签，不增加推理阶段分支。"),
+        p("同一训练种子下，四组共享网络初始化、每轮样本顺序、裁剪位置与翻转状态。遮挡流与基础增强流独立；四组共用遮挡均匀随机数和中心坐标，再按各自概率筛选，从而避免增强开关改变基础随机序列。训练目标统一为真实类别上的交叉熵，不改变标签，不增加推理阶段分支。"),
     ])
     pages.append([
         h("4 实验设置"),
@@ -136,7 +147,7 @@ def make_pages(summary, publication):
         h2("5.2 收敛过程与训练验证差异"),
         fig("fig3_learning.png", "图3 三个种子的训练损失、验证准确率与无增强训练探针准确率；阴影为训练种子间样本标准差。"),
         p("图3的训练损失是在各组实际增强输入上计算，因此不同组对应不同的输入难度。较高的增强训练损失既可能表示正则化更强，也可能表示训练不足，不能直接等同于更差的泛化。为减少这一混淆，同时观察无增强探针和干净验证曲线。在相同轮次比较两者，能够辅助区分训练拟合能力和验证表现，但探针样本较少，差值仍有抽样误差。"),
-        p(f"以前{m['matched']['early_validation_mean']['window_epochs']}轮验证准确率的轮次均值描述早期表现，固定概率组为{m['matched']['early_validation_mean']['mean']:.2f}%，渐进组为{m['progressive']['early_validation_mean']['mean']:.2f}%。这一指标用于补充收敛曲线，不参与权重选择，也不是最终测试主指标。早期表现与最终性能可能并不一致，因此需要与表3共同判断。"),
+        p(f"以前{m['matched']['early_validation_mean']['window_epochs']}轮验证准确率的轮次均值描述早期表现，固定概率组为{m['matched']['early_validation_mean']['mean']:.2f}%，渐进组为{m['progressive']['early_validation_mean']['mean']:.2f}%，相差{early_delta:+.2f}个百分点。{early_interpretation}这一指标不参与权重选择，也不是最终测试主指标，需与表3共同判断。"),
         table("表4 末轮无增强探针与验证准确率差及实际遮挡覆盖量", ["方法", "探针减验证/百分点", "全程遮挡像素比例/%"], [
             [names[k], f"{v['probe_val_gap_final']:.2f}", f"{v['realized_mask_fraction']*100:.3f}"] for k, v in m.items()], [5.0, 5.5, 5.2]),
         p(f"固定概率与渐进组的平均实际遮挡像素比例分别为{m['matched']['realized_mask_fraction']*100:.3f}%和{m['progressive']['realized_mask_fraction']*100:.3f}%。平均概率相等只约束期望值，实际覆盖量的接近程度应由日志确认。逐轮覆盖量随p(e)改变，而遮挡位置及内容是否重要并不由概率 alone 决定。".replace("概率 alone", "概率本身")),
@@ -148,16 +159,17 @@ def make_pages(summary, publication):
         fig("fig4_robustness.png", "图4 测试遮挡边长与分类准确率；误差条为三个训练种子的样本标准差。", 13.6),
         table("表5 不同测试遮挡强度下的准确率，单位%", ["方法", "8像素", "16像素", "24像素"], [
             [names[k], *[f"{m[k][f'occlusion_{l}']['mean']:.2f} ± {m[k][f'occlusion_{l}']['std']:.2f}" for l in (8, 16, 24)]] for k in names], [4.0, 3.9, 3.9, 3.9]),
+        p("渐进组相对固定概率对照在8、16、24像素遮挡下的变化分别为" + "、".join(f"{m['progressive'][f'occlusion_{l}']['mean'] - m['matched'][f'occlusion_{l}']['mean']:+.2f}" for l in (8, 16, 24)) + "个百分点。逐强度结果表明平均遮挡分数来自哪些条件，可检查某一强度下的改善是否掩盖另一强度的退化。不同强度未被当作单独的调参任务。"),
         p("图4将干净条件与三种遮挡强度连接展示。边长增加会改变遮挡面积，图像中可用信息也随之减少，因而应同时观察绝对准确率和各方法的相对差异。24像素方块可能移除超过一半像素，这种测试比训练的16像素边界截断遮挡更强；若某方法在此处仍有优势，可以说明其对本文合成扰动的适应，但不能据此推断自然物体遮挡或所有分布外变化。"),
         p("三个测试位置在不同模型间完全一致，避免某个模型恰好遇到更容易的位置。遮挡平均分对三个边长等权，因此它反映本协议的综合表现，而非真实部署环境中遮挡强度的发生频率。实际应用若有不同强度分布，应重新定义权重并单独验证。均值相近时，需要结合逐种子差值，避免用单条曲线的细小间隔作出过强结论。"),
     ])
     pages.append([
         h2("5.4 类别差异与错误分布"),
-        fig("fig5_confusion.png", "图5 基线与渐进方案的干净测试混淆矩阵。横纵轴0—9依次对应表6中的类别；数值按真实类别归一化为百分比。"),
+        fig("fig5_confusion.png", "图5 基线与渐进方案的干净测试混淆矩阵。横纵轴0—9依次对应表6中的类别；按真实类别归一化为百分比，仅标注不低于1%的单元格。"),
         table("表6 各类别干净测试准确率的三种子均值，单位%", ["类别", "基线", "原版", "固定概率", "渐进"], [
             [c, *[f"{m[k]['per_class'][i]:.2f}" for k in names]] for i, c in enumerate(["飞机", "汽车", "鸟", "猫", "鹿", "狗", "蛙", "马", "船", "卡车"])], [3.7, 3.0, 3.0, 3.0, 3.0]),
         p("表6可以识别平均指标隐藏的类别变化。某类改善并不意味着同一方法对所有类别均有益；不同类别的外形、背景和局部纹理依赖程度不同，增强也可能改变它们的有效区分线索。混淆矩阵提供错误去向，但不能直接证明网络关注了哪些区域。本文未通过注意力干预或特征归因验证这一机制，因此不把矩阵差异解释为模型必然学到了特定语义部位。"),
-        p(f"渐进方案相对基线的类别增量最高者为{category_names[best_class]}，变化{category_differences[best_class]:+.2f}个百分点；增量最低者为{category_names[worst_class]}，变化{category_differences[worst_class]:+.2f}个百分点。这一对比展示同一策略的类别异质性，不能只凭平均值忽略局部退化。类别子集不是独立训练重复，本文不据此额外宣称显著性。"),
+        p(f"渐进方案相对基线的类别增量最高者为{best_categories}，均变化{category_differences[best_class]:+.2f}个百分点；增量最低者为{worst_categories}，变化{category_differences[worst_class]:+.2f}个百分点。这一对比展示同一策略的类别异质性，不能只凭平均值忽略局部退化。类别子集不是独立训练重复，本文不据此额外宣称显著性。"),
     ])
     pages.append([
         h2("5.5 改善与退化案例"),
@@ -173,10 +185,11 @@ def make_pages(summary, publication):
             ["渐进 减 固定概率", f"{dm['accuracy']['mean']:+.2f} ± {dm['accuracy']['std']:.2f}", f"{dm['mean_occluded_accuracy']['mean']:+.2f} ± {dm['mean_occluded_accuracy']['std']:.2f}"],
             ["渐进 减 原版", f"{dc['accuracy']['mean']:+.2f} ± {dc['accuracy']['std']:.2f}", f"{dc['mean_occluded_accuracy']['mean']:+.2f} ± {dc['mean_occluded_accuracy']['std']:.2f}"]], [5.0, 5.4, 5.3]),
         p(f"D相对C的干净准确率在{dm['accuracy']['positive_seeds']}/3个种子中提高，遮挡平均准确率在{dm['mean_occluded_accuracy']['positive_seeds']}/3个种子中提高。与始终遮挡组比较时，平均增强总量和时间顺序同时变化；与固定0.5组比较时，平均期望总量得到控制。因此，后者是判断渐进调度贡献的主要依据。即使后者出现正向均值，也只构成当前条件下的有限证据，不能替代更多随机种子和数据集上的检验。"),
+        p(f"与始终遮挡组相比，渐进组干净准确率变化{change('progressive_minus_cutout')}个百分点，遮挡平均准确率变化{change('progressive_minus_cutout','mean_occluded_accuracy')}个百分点；前者在{dc['accuracy']['positive_seeds']}/3个种子中提高，后者在{dc['mean_occluded_accuracy']['positive_seeds']}/3个种子中提高。本实验因此支持等强度条件下的调度收益，同时显示它未在全部指标上超过始终遮挡，不能将干净准确率最高解释为全面优越。"),
         p("本实验仍存在限制。首先，仅使用CIFAR-10与一种轻量网络，缺少跨数据集和模型规模验证。其次，仅研究线性概率调度，未检验递减、分段或按难度自适应策略。再次，增强总量只在期望上匹配；相同像素数量不一定对应相同语义信息损失。最后，三个训练种子不足以精确估计小幅改进的统计稳定性，固定1000张训练探针也不能代表完整训练分布。"),
         p("本文优先保证对照条件明确和结果可追溯，没有通过测试集反复寻找有利的方块边长或终止轮次。负向或混合结果同样保留。后续可增加重复实验，并在相同预算下比较其他调度，同时对测试遮挡位置或自然遮挡分布作更贴近应用的建模。"),
         h("6 结论"),
-        p(f"本文在CIFAR ResNet-20上完成四组方法、三个随机种子的Cutout复现与渐进概率比较。渐进组干净准确率为{score('progressive')}%，遮挡平均准确率为{score('progressive','mean_occluded_accuracy')}%。相对等强度固定概率组，两项指标变化分别为{change('progressive_minus_matched')}和{change('progressive_minus_matched','mean_occluded_accuracy')}个百分点。{finding}。实验表明，对渐进增强的评价需要区分总量和时间顺序，并同时检查干净性能、扰动性能及随机种子变化。本文提供完整日志、预测和对应权重，支持独立复核。"),
+        p(f"本文在CIFAR ResNet-20上完成四组方法、三个随机种子的Cutout复现与渐进概率比较。渐进组干净准确率为{score('progressive')}%，遮挡平均准确率为{score('progressive','mean_occluded_accuracy')}%。相对等强度固定概率组，两项指标变化分别为{change('progressive_minus_matched')}和{change('progressive_minus_matched','mean_occluded_accuracy')}个百分点。{finding}。相对始终遮挡组的变化为{change('progressive_minus_cutout')}和{change('progressive_minus_cutout','mean_occluded_accuracy')}个百分点，表明两类性能存在取舍。对渐进增强的评价需要区分总量和时间顺序，并同时检查干净性能、扰动性能及随机种子变化。本文提供完整日志、预测和对应权重，支持独立复核。"),
     ])
     repo = publication.get("repository_url", "")
     release = publication.get("release_url", "")

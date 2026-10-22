@@ -1,0 +1,11 @@
+{
+  "maximum_absolute_tensor_difference": 0.0,
+  "epochs": 3,
+  "probabilities": [
+    0.0,
+    0.5,
+    1.0
+  ],
+  "passed": true,
+  "purpose": "synthetic pipeline validation only, not formal experiment evidence"
+}

@@ -5,3 +5,11 @@
 *.pdf binary
 *.docx binary
 *.zip binary
+data/*.json -text
+configs/*.json -text
+runs/** -text
+output/** -text
+cutout_lab/model.py -text
+cutout_lab/data.py -text
+cutout_lab/engine.py -text
+cutout_lab/utils.py -text

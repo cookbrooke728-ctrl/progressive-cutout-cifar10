@@ -15,7 +15,7 @@ try {
     $document.Repaginate()
     $pages = $document.ComputeStatistics(2)
     $document.ExportAsFixedFormat($target, 17)
-    [pscustomobject]@{pdf=$target; pages=$pages; renderer='Microsoft Word native PDF export'} | ConvertTo-Json
+    [pscustomobject]@{pdf=$target; word_page_estimate=$pages; renderer='Microsoft Word native PDF export'; note='Use the exported PDF page count as authoritative'} | ConvertTo-Json
 }
 finally {
     if ($null -ne $document) {

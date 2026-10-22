@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "paper"))
-from build_paper import Document, configure_styles, add_text, add_table
+from build_paper import Document, configure_styles, add_text, add_table, add_equation
 
 doc = Document()
 configure_styles(doc)
@@ -12,5 +12,8 @@ add_text(doc, "Lingxiao Liu　North China Electric Power University", 10, center
 doc.add_paragraph("方法与环境", style="Heading 1")
 add_text(doc, "此文件仅用于检查本机Word对中文、英文、表格和页码的渲染能力，不包含任何正式实验性能结果。正式论文由完整训练与评估记录生成。")
 add_table(doc, "排版检查表", ["项目", "内容"], [["模型", "CIFAR ResNet-20"], ["参数量", "269722"], ["真实署名", "刘凌霄"]], [4, 11.7])
+add_equation(doc, "x' = (1 - M) ⊙ x")
+add_equation(doc, "p(e) = (e - 1) / (E - 1)")
+add_text(doc, "代码仓库：https://github.com/cookbrooke728-ctrl/progressive-cutout-cifar10。")
 Path(".tmp").mkdir(exist_ok=True)
 doc.save(".tmp/render_smoke.docx")

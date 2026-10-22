@@ -27,6 +27,12 @@ jobs:
         run: |
           python3 - <<'PY'
           import hashlib, json, pathlib, shutil
+          ready = json.loads(pathlib.Path('.release-ready').read_text())
+          assert ready['formal_runs'] == 12 and ready['epochs'] == 100
+          for filename, key in [('output/summary.json', 'summary_sha256'),
+                                ('output/paper/progressive_cutout_paper.pdf', 'pdf_sha256'),
+                                ('weights/manifest.json', 'weights_manifest_sha256')]:
+              assert hashlib.sha256(pathlib.Path(filename).read_bytes()).hexdigest() == ready[key]
           manifest = json.loads(pathlib.Path('weights/manifest.json').read_text())
           assert len(manifest['weights']) == 12
           for entry in manifest['weights']:

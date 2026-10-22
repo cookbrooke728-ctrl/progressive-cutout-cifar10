@@ -23,6 +23,8 @@ for folder in (".github", "cutout_lab", "configs", "tests", "scripts", "paper", 
             continue
         if path.suffix in (".pt", ".pyc", ".tmp", ".log", ".zip"):
             continue
+        if path.name in ("install_gh.py", "gh_with_proxy.py"):
+            continue
         files.append(path)
 files.extend(root / "data" / name for name in ("split.json", "normalization.json", "download_provenance.json"))
 ready = root / ".release-ready"

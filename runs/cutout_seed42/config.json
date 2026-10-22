@@ -1,0 +1,43 @@
+{
+  "method": "cutout",
+  "seed": 42,
+  "epochs": 100,
+  "batch_size": 128,
+  "architecture": "cifar_resnet20_option_a",
+  "lr": 0.1,
+  "min_lr": 0.0001,
+  "momentum": 0.9,
+  "weight_decay": 0.0005,
+  "length": 16,
+  "split_sha256": "a6b90e79fe061cd910d9dd2a19a5c61da4e795d4a6fcd749152e6d7d4f4c23e2",
+  "normalization": {
+    "mean": [
+      0.4915135944308278,
+      0.48231470971200985,
+      0.4468138379970044
+    ],
+    "std": [
+      0.24705092701492043,
+      0.24347971893365994,
+      0.2615095063426509
+    ],
+    "source": "45000 training images only",
+    "split_sha256": "a6b90e79fe061cd910d9dd2a19a5c61da4e795d4a6fcd749152e6d7d4f4c23e2"
+  },
+  "classes": [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck"
+  ],
+  "precision": "float32; TF32 disabled",
+  "deterministic_cudnn": true,
+  "execution_backend": "cudagraphs",
+  "sgd_fused": true
+}

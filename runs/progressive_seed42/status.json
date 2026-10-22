@@ -1,0 +1,11 @@
+{
+  "method": "progressive",
+  "seed": 42,
+  "completed_epochs": 100,
+  "total_epochs": 100,
+  "best_epoch": 97,
+  "best_validation_accuracy": 93.38,
+  "complete": true,
+  "training_seconds": 780.4703885993222,
+  "best_weight_sha256": "23acd5089839f3134ce24329bd5dab729a9670155fdff150be4ee759e5f98d4d"
+}

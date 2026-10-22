@@ -1,0 +1,10 @@
+{
+  "pdf_pages": 12,
+  "figures": 6,
+  "tables": 7,
+  "all_pages_visually_reviewed": true,
+  "renderer": "Microsoft Word native PDF export; Poppler page rendering",
+  "docx_sha256": "2f9aa4416bb3939e414a7ee2f63509a31db95199d63650a9686b19b176de1572",
+  "pdf_sha256": "49a64d7acb10fd71d5b17493622bbf746923d314458d62d6ba3c9f830b1c9fbe",
+  "github_hyperlinks_checked": true
+}

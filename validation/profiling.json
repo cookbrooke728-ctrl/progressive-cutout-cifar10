@@ -1,0 +1,9 @@
+{
+  "pilot_epochs": 3,
+  "steady_epoch_seconds": 8.47604154999135,
+  "estimated_12_runs_100_epochs_hours": 2.82534718333045,
+  "selected_epochs": 100,
+  "budget_rule": "100 epochs unless projected formal training exceeds 12 GPU hours",
+  "test_set_consulted": false,
+  "backend": "cudagraphs + fused SGD; FP32, TF32 disabled"
+}

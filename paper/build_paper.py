@@ -1,6 +1,8 @@
 """Run with the bundled document runtime after the experiment audit succeeds."""
 import json
+import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from docx import Document
@@ -8,6 +10,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.shared import Cm, Pt, RGBColor
 
 from content import make_pages
@@ -67,8 +70,47 @@ def add_text(doc, text, size=10.5, style=None, center=False, indent=True, spacin
     paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER if center else WD_ALIGN_PARAGRAPH.JUSTIFY
     paragraph.paragraph_format.first_line_indent = Pt(21 if indent and not center else 0)
     paragraph.paragraph_format.line_spacing = spacing
-    set_font(paragraph.add_run(text), size)
+    # Explicit hyperlinks survive both Word export and the final PDF.
+    for part in re.split(r"(https://[^\s。]+)", text):
+        if part.startswith("https://"):
+            url = part.rstrip(".,;")
+            link = OxmlElement("w:hyperlink")
+            link.set(qn("r:id"), paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True))
+            run = paragraph.add_run(url)
+            set_font(run, size)
+            run.font.underline = True
+            link.append(run._r)
+            paragraph._p.append(link)
+            if len(url) < len(part):
+                set_font(paragraph.add_run(part[len(url):]), size)
+        else:
+            set_font(paragraph.add_run(part), size)
     return paragraph
+
+
+def add_equation(doc, text):
+    paragraph = doc.add_paragraph()
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    paragraph.paragraph_format.first_line_indent = Pt(0)
+    math_para, math = OxmlElement("m:oMathPara"), OxmlElement("m:oMath")
+    def atom(parent, value):
+        run, content = OxmlElement("m:r"), OxmlElement("m:t")
+        content.text = value
+        run.append(content)
+        parent.append(run)
+    if text.startswith("p(e)"):
+        atom(math, "p(e) = ")
+        fraction = OxmlElement("m:f")
+        for tag, value in (("num", "e − 1"), ("den", "E − 1")):
+            element = OxmlElement(f"m:{tag}")
+            atom(element, value)
+            fraction.append(element)
+        math.append(fraction)
+        atom(math, ",   e = 1, …, E     (2)")
+    else:
+        atom(math, "x′ = (1 − M) ⊙ x     (1)")
+    math_para.append(math)
+    paragraph._p.append(math_para)
 
 
 def add_table(doc, caption, headers, rows, widths):
@@ -142,6 +184,10 @@ def main():
     doc.core_properties.title = "渐进式随机遮挡对图像分类性能的影响"
     doc.core_properties.subject = "CIFAR-10 Cutout reproduction and controlled progressive probability study"
     doc.core_properties.author = publication.get("author", "")
+    doc.core_properties.last_modified_by = publication.get("author", "")
+    doc.core_properties.created = datetime.now(timezone.utc)
+    doc.core_properties.modified = datetime.now(timezone.utc)
+    doc.core_properties.keywords = "Cutout; CIFAR-10; ResNet-20; progressive occlusion"
     markdown = []
     for index, blocks in enumerate(pages):
         if index:
@@ -172,16 +218,7 @@ def main():
                     paragraph.paragraph_format.space_after = Pt(6)
                 markdown.extend([block[1], ""])
             elif kind == "eq":
-                paragraph = doc.add_paragraph()
-                paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                paragraph.paragraph_format.first_line_indent = Pt(0)
-                math_para, math = OxmlElement("m:oMathPara"), OxmlElement("m:oMath")
-                run, text = OxmlElement("m:r"), OxmlElement("m:t")
-                text.text = block[1]
-                run.append(text)
-                math.append(run)
-                math_para.append(math)
-                paragraph._p.append(math_para)
+                add_equation(doc, block[1])
                 markdown.extend([block[1], ""])
             elif kind == "figure":
                 paragraph = doc.add_paragraph()

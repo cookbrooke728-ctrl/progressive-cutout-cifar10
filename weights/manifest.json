@@ -1,0 +1,103 @@
+{
+  "repository_url": "https://github.com/cookbrooke728-ctrl/progressive-cutout-cifar10",
+  "tag": "v1.0.0",
+  "weights": [
+    {
+      "run": "baseline_seed42",
+      "filename": "baseline_seed42_best.pt",
+      "sha256": "946fbc389a129ca32775e598d965cf98f6964248938d0cb3ba0608f4c3feb386",
+      "best_epoch": 95,
+      "clean_accuracy": 91.58,
+      "mean_occluded_accuracy": 55.28444444444445
+    },
+    {
+      "run": "baseline_seed43",
+      "filename": "baseline_seed43_best.pt",
+      "sha256": "9c353379702966d1d0194554da7d5045ccedbc4ad710bbdd51f66a910340c761",
+      "best_epoch": 90,
+      "clean_accuracy": 91.28,
+      "mean_occluded_accuracy": 51.855555555555554
+    },
+    {
+      "run": "baseline_seed44",
+      "filename": "baseline_seed44_best.pt",
+      "sha256": "69c5cd20e0cfd3bcf143ff3658e26b19908e897816bb8fc68075e100926aeee0",
+      "best_epoch": 97,
+      "clean_accuracy": 91.71000000000001,
+      "mean_occluded_accuracy": 55.866666666666674
+    },
+    {
+      "run": "cutout_seed42",
+      "filename": "cutout_seed42_best.pt",
+      "sha256": "e89a39afee2de5caebcd5ffa9bd0c624fce7e181fa6f217f712dee03af2a5001",
+      "best_epoch": 96,
+      "clean_accuracy": 92.44,
+      "mean_occluded_accuracy": 80.74111111111112
+    },
+    {
+      "run": "cutout_seed43",
+      "filename": "cutout_seed43_best.pt",
+      "sha256": "3e50d17f13dc127a093db22657ea8d4d23bbdcdd8b3d71b46dd15000b8396479",
+      "best_epoch": 98,
+      "clean_accuracy": 92.2,
+      "mean_occluded_accuracy": 80.63333333333333
+    },
+    {
+      "run": "cutout_seed44",
+      "filename": "cutout_seed44_best.pt",
+      "sha256": "7a33a19feb7db6e06969ffde2e641c6813881bb6e93df7b5cd7f2c34bc3638f5",
+      "best_epoch": 100,
+      "clean_accuracy": 92.47,
+      "mean_occluded_accuracy": 81.47777777777777
+    },
+    {
+      "run": "matched_seed42",
+      "filename": "matched_seed42_best.pt",
+      "sha256": "c1fec16f3a8e31396bf2095229fe94e3ddd411dd38080d6ac6ee9c4dea9910fe",
+      "best_epoch": 100,
+      "clean_accuracy": 92.29,
+      "mean_occluded_accuracy": 79.53222222222222
+    },
+    {
+      "run": "matched_seed43",
+      "filename": "matched_seed43_best.pt",
+      "sha256": "32876f3e725a161af2eb7c80a1a0d6c4d5fe27db10bfb581a30db257106458b1",
+      "best_epoch": 99,
+      "clean_accuracy": 91.83,
+      "mean_occluded_accuracy": 79.40111111111112
+    },
+    {
+      "run": "matched_seed44",
+      "filename": "matched_seed44_best.pt",
+      "sha256": "6508132fc4642dafac538fb545f24511ce53a2e40388aeed785db408d819421f",
+      "best_epoch": 99,
+      "clean_accuracy": 92.29,
+      "mean_occluded_accuracy": 79.53666666666666
+    },
+    {
+      "run": "progressive_seed42",
+      "filename": "progressive_seed42_best.pt",
+      "sha256": "23acd5089839f3134ce24329bd5dab729a9670155fdff150be4ee759e5f98d4d",
+      "best_epoch": 97,
+      "clean_accuracy": 92.57,
+      "mean_occluded_accuracy": 80.11222222222223
+    },
+    {
+      "run": "progressive_seed43",
+      "filename": "progressive_seed43_best.pt",
+      "sha256": "ad7a8b52520d905c9922f631df2245300cbdc31c645899b6fa9413b440caa41e",
+      "best_epoch": 99,
+      "clean_accuracy": 92.65,
+      "mean_occluded_accuracy": 79.61777777777779
+    },
+    {
+      "run": "progressive_seed44",
+      "filename": "progressive_seed44_best.pt",
+      "sha256": "9e41ebca790e2fe35db21d728954ed3e9847f4b1a48f76b57e937e9bcba8d602",
+      "best_epoch": 99,
+      "clean_accuracy": 92.67,
+      "mean_occluded_accuracy": 80.38333333333334
+    }
+  ],
+  "evidence_sha256": "a1deb537d64f1f68621f0353dfef16c5268c33be90ee53607aec8928ff48836a"
+}

@@ -1,0 +1,7 @@
+{
+  "summary_sha256": "02942109cbc726c28a03adf1173bf54b3f2859fcad417a68d5082d255b198f5f",
+  "pdf_sha256": "49a64d7acb10fd71d5b17493622bbf746923d314458d62d6ba3c9f830b1c9fbe",
+  "weights_manifest_sha256": "9741d3e4e02a8b35e32dd564403e760a15d5a32bf3a83277cb64ce4f862dccc2",
+  "formal_runs": 12,
+  "epochs": 100
+}

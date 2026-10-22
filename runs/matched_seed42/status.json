@@ -1,0 +1,11 @@
+{
+  "method": "matched",
+  "seed": 42,
+  "completed_epochs": 100,
+  "total_epochs": 100,
+  "best_epoch": 100,
+  "best_validation_accuracy": 93.0,
+  "complete": true,
+  "training_seconds": 783.355212399736,
+  "best_weight_sha256": "c1fec16f3a8e31396bf2095229fe94e3ddd411dd38080d6ac6ee9c4dea9910fe"
+}

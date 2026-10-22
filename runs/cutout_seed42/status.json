@@ -1,0 +1,11 @@
+{
+  "method": "cutout",
+  "seed": 42,
+  "completed_epochs": 100,
+  "total_epochs": 100,
+  "best_epoch": 96,
+  "best_validation_accuracy": 92.84,
+  "complete": true,
+  "training_seconds": 781.717418499873,
+  "best_weight_sha256": "e89a39afee2de5caebcd5ffa9bd0c624fce7e181fa6f217f712dee03af2a5001"
+}

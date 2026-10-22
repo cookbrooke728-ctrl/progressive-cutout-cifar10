@@ -1,0 +1,17 @@
+{
+  "eager": {
+    "seconds_per_step": 0.03630984999937937,
+    "final_loss": 0.0046914080157876015,
+    "max_abs_state_diff_from_eager": 0.0
+  },
+  "fused": {
+    "seconds_per_step": 0.03335580199956894,
+    "final_loss": 0.004570589400827885,
+    "max_abs_state_diff_from_eager": 0.3897218704223633
+  },
+  "cudagraphs": {
+    "seconds_per_step": 0.014172922000288963,
+    "final_loss": 0.004620682448148727,
+    "max_abs_state_diff_from_eager": 0.2972480058670044
+  }
+}

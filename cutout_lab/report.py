@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 import numpy as np
 
-from .data import CLASSES, prepare
+from .data import CLASSES, prepare, test_positions
 from .engine import METHODS
 from .utils import dump_json, sha256, write_csv
 
@@ -27,6 +27,7 @@ def build_report(runs="runs", output="output"):
     figures.mkdir(parents=True, exist_ok=True)
     records, histories, configs = {}, {}, []
     audit = []
+    shared_targets = None
     for method in METHODS:
         for seed in (42, 43, 44):
             run = runs / f"{method}_seed{seed}"
@@ -38,6 +39,7 @@ def build_report(runs="runs", output="output"):
             assert config["method"] == method and config["seed"] == seed
             records[method, seed] = evaluation
             histories[method, seed] = read_csv(run / "history.csv")
+            assert [int(r["epoch"]) for r in histories[method, seed]] == list(range(1, config["epochs"] + 1))
             configs.append(config)
             audit.append({"run": run.name, "weight_sha256": evaluation["weight_sha256"],
                           "history_sha256": sha256(run / "history.csv"),
@@ -45,15 +47,27 @@ def build_report(runs="runs", output="output"):
                           "clean_predictions_sha256": sha256(run / "predictions" / "clean.csv")})
             # Recompute the primary number directly from saved predictions.
             predictions = read_csv(run / "predictions" / "clean.csv")
+            assert [int(r["index"]) for r in predictions] == list(range(10000))
+            targets = [int(r["target"]) for r in predictions]
+            if shared_targets is None:
+                shared_targets = targets
+            assert targets == shared_targets
             accuracy = np.mean([r["target"] == r["prediction"] for r in predictions]) * 100
             assert len(predictions) == 10000 and abs(accuracy - evaluation["clean"]["accuracy"]) < 1e-10
             from .utils import metrics
             recalculated = metrics([int(r["target"]) for r in predictions], [int(r["prediction"]) for r in predictions])
             assert abs(recalculated["macro_f1"] - evaluation["clean"]["macro_f1"]) < 1e-10
+            assert recalculated["confusion"] == evaluation["clean"]["confusion"]
+            audit[-1]["occluded_predictions_sha256"] = {}
             for length in (8, 16, 24):
                 for repeat in range(3):
                     occluded = read_csv(run / "predictions" / f"occlusion_{length}_repeat{repeat}.csv")
                     assert len(occluded) == 10000
+                    assert [int(r["index"]) for r in occluded] == list(range(10000))
+                    assert [int(r["target"]) for r in occluded] == shared_targets
+                    digest = __import__("hashlib").sha256(test_positions(10000, length, repeat).tobytes()).hexdigest()
+                    assert digest == evaluation["occlusion"][str(length)]["repeats"][repeat]["positions_sha256"]
+                    audit[-1]["occluded_predictions_sha256"][f"{length}_{repeat}"] = sha256(run / "predictions" / f"occlusion_{length}_repeat{repeat}.csv")
                     oa = np.mean([r["target"] == r["prediction"] for r in occluded]) * 100
                     assert abs(oa - evaluation["occlusion"][str(length)]["repeats"][repeat]["accuracy"]) < 1e-10
     common = [{k: v for k, v in c.items() if k not in ("method", "seed")} for c in configs]

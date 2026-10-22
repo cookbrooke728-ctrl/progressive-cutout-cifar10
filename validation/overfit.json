@@ -1,0 +1,9 @@
+{
+  "samples": 256,
+  "augmentation": false,
+  "steps": 50,
+  "accuracy": 99.21875,
+  "seconds": 15.851426100009121,
+  "passed": true,
+  "purpose": "implementation validation only; not a formal test result"
+}

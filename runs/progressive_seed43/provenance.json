@@ -1,0 +1,18 @@
+{
+  "python": "3.13.5",
+  "torch": "2.8.0+cu128",
+  "cuda": "12.8",
+  "cudnn": 91002,
+  "cudnn_tf32": false,
+  "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "git_commit": "a744433ea25d71b1cb11b437680339389a9a62a6",
+  "git_dirty": true,
+  "training_source_sha256": {
+    "model.py": "fdb5c003dd9dd434178ed68fa75c9ef41f1a46afc4c8ab55869ece3790d10c32",
+    "data.py": "30014dcec0bc22f200bd291a56485068e7142662e336fe1d4b391a1c0fe34a2b",
+    "engine.py": "79d2446bf012809ef7ace1892c5664fa90a8c870f8b90c2331bfc8dbc18e3657",
+    "utils.py": "335507cab1eb7c60a5169921792dd9c73fdacf38b20c4017d1b5d68105561075"
+  },
+  "started_utc": "2026-10-21T15:43:08.027962+00:00",
+  "parameters": 269722
+}
