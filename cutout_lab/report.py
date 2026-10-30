@@ -10,6 +10,7 @@ import numpy as np
 
 from .data import CLASSES, prepare, test_positions
 from .engine import METHODS
+from .weights import resolve_weight
 from .utils import dump_json, sha256, write_csv
 
 NAMES = {"baseline": "Baseline", "cutout": "Cutout p=1", "matched": "Cutout p=0.5", "progressive": "Progressive Cutout"}
@@ -21,7 +22,7 @@ def read_csv(path):
         return list(csv.DictReader(stream))
 
 
-def build_report(runs="runs", output="output"):
+def build_report(runs="runs", output="output", data="data"):
     runs, output = Path(runs), Path(output)
     figures = output / "figures"
     figures.mkdir(parents=True, exist_ok=True)
@@ -35,7 +36,7 @@ def build_report(runs="runs", output="output"):
             config = json.loads((run / "config.json").read_text(encoding="utf-8"))
             status = json.loads((run / "status.json").read_text(encoding="utf-8"))
             assert status["complete"] and status["completed_epochs"] == config["epochs"]
-            assert evaluation["weight_sha256"] == sha256(run / "best.pt")
+            assert evaluation["weight_sha256"] == sha256(resolve_weight(run))
             assert config["method"] == method and config["seed"] == seed
             records[method, seed] = evaluation
             histories[method, seed] = read_csv(run / "history.csv")
@@ -138,7 +139,7 @@ def build_report(runs="runs", output="output"):
     axes[1].legend(fontsize=10.5)
     fig.tight_layout()
     save(fig, "fig1_method")
-    source, test, _, stats = prepare("data")
+    source, test, _, stats = prepare(data)
     mean = np.array(stats["mean"])
     fig, axes = plt.subplots(2, 5, figsize=(9, 3.8))
     for i in range(5):

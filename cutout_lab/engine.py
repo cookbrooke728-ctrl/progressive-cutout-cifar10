@@ -170,15 +170,17 @@ def train_run(data, method, seed, epochs=100, batch_size=128, output="runs", res
 
 def evaluate_run(data, run, force=False):
     run = Path(run)
+    from .weights import resolve_weight
+    weight = resolve_weight(run)
     if (run / "evaluation.json").exists() and not force:
         result = json.loads((run / "evaluation.json").read_text(encoding="utf-8"))
-        if result["weight_sha256"] != sha256(run / "best.pt"):
+        if result["weight_sha256"] != sha256(weight):
             raise ValueError("Weights changed after evaluation")
         return result
     status = json.loads((run / "status.json").read_text(encoding="utf-8"))
     if not status["complete"]:
         raise ValueError("Formal test evaluation requires completed training")
-    checkpoint = torch.load(run / "best.pt", map_location=data.device, weights_only=True)
+    checkpoint = torch.load(weight, map_location=data.device, weights_only=True)
     if checkpoint["config"]["split_sha256"] != data.split_hash or checkpoint["config"]["normalization"] != data.stats:
         raise ValueError("Evaluation preprocessing/split differs from training")
     data.load_test()
@@ -188,7 +190,7 @@ def evaluate_run(data, run, force=False):
     beginning = time.perf_counter()
     result = {"method": checkpoint["config"]["method"], "seed": checkpoint["config"]["seed"],
               "best_epoch": checkpoint["best_epoch"], "validation_accuracy": checkpoint["validation_accuracy"],
-              "weight_sha256": sha256(run / "best.pt"), "split_sha256": data.split_hash,
+              "weight_sha256": sha256(weight), "split_sha256": data.split_hash,
               "test_samples": len(labels), "occlusion": {}}
     def save_predictions(name, predictions, confidences):
         write_csv(run / "predictions" / f"{name}.csv", ({"index": i, "target": int(y),

@@ -38,18 +38,60 @@ SGD, LR=0.1, momentum=0.9, weight decay=0.0005, batch=128；每轮余弦衰减�
 不同执行后端的浮点舍入可导致训练轨迹差异，跨硬件或后端不承诺逐位相同。
 按干净验证准确率选最佳检查点，同分取更早轮次。完整配置见 `configs/experiment.json`。
 
+## 使用已有权重复核（不训练）
+
+在解压目录执行，先按 Environment 安装依赖并准备数据。原始 runs/、output/ 保持不变。
+restore 验证 SHA-256、方法、种子、完整配置与最佳轮次，再复制到必须不存在的新目录，
+不复制已有 evaluation.json 或 predictions。每次复核换用新的目标目录。
+
 ```powershell
-# Entire suite: resume automatically; skip complete runs
-.\.venv\Scripts\python.exe -m cutout_lab suite
-# Limit a session to four completed runs (one seed across four methods)
-.\.venv\Scripts\python.exe -m cutout_lab suite --stop-after-runs 4
-# Single run; --stop-after saves a session checkpoint without changing total schedule
-.\.venv\Scripts\python.exe -m cutout_lab train --method progressive --seed 42 --epochs 100 --stop-after 10
-.\.venv\Scripts\python.exe -m cutout_lab train --method progressive --seed 42 --epochs 100 --resume
-# Only after frozen training is complete
-.\.venv\Scripts\python.exe -m cutout_lab evaluate
-.\.venv\Scripts\python.exe -m cutout_lab report
+.\.venv\Scripts\python.exe -m cutout_lab restore --source-runs runs --weights weights --output verification/fixed/runs
+.\.venv\Scripts\python.exe -m cutout_lab evaluate --runs verification/fixed/runs --data data --device cuda --force
+.\.venv\Scripts\python.exe -m cutout_lab report --runs verification/fixed/runs --data data --output verification/fixed/report
 ```
+
+`--force` 实际推理干净测试与原定 9 种遮挡条件。没有该标志可能使用缓存，不能作为重新推理的证据。
+report 仅汇总预测，不运行网络。无 GPU 时改为 `--device cpu`，耗时更长。
+已有外部数据时，prepare/evaluate/report 的 `--data` 可指定包含批次文件、split.json 和 normalization.json 的绝对目录。
+直接 evaluate/report 也统一支持同级 weights/ 回退，但为保护证据，推荐上述独立目录流程。
+
+## 在新目录从头训练
+
+不要对自带已完成的 runs/ 运行 suite 来复核权重。--output 只改变产物位置，原超参数、种子和100轮保持不变。
+此流程开销较大，不是已有权重复核的前置步骤。
+
+```powershell
+.\.venv\Scripts\python.exe -m cutout_lab suite --config configs/experiment.json --output experiments/fresh/runs
+.\.venv\Scripts\python.exe -m cutout_lab evaluate --runs experiments/fresh/runs --data data --device cuda --force
+.\.venv\Scripts\python.exe -m cutout_lab report --runs experiments/fresh/runs --data data --output experiments/fresh/report
+```
+
+已有完成状态先校验权重再明确跳过；缺失权重直接报错，不静默跳过或补训。
+已有未完成目录必须显式恢复或换新目录，不再自动续训。
+
+## 仅当 last.pt 存在时恢复
+
+best.pt 不含续训所需的优化器状态，不能替代 last.pt。
+先确认 Test-Path 返回 True，再执行恢复命令；原始提交包不提供 last.pt。
+
+```powershell
+Test-Path experiments/fresh/runs/progressive_seed42/last.pt
+.\.venv\Scripts\python.exe -m cutout_lab train --method progressive --seed 42 --epochs 100 --output experiments/fresh/runs --resume
+```
+
+套件恢复可以加 `suite --output experiments/fresh/runs --resume`，但每个未完成运行都必须有 last.pt；
+未开始的运行请用不带 --resume 的新目录。
+
+## 修复测试与重新打包
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests -q
+.\.venv\Scripts\python.exe scripts/build_submission.py --base output/submission_bundle.zip --output output/submission_bundle_fixed.zip
+```
+
+--base 可指定保存在任意位置的原始 submission_bundle.zip；输出必须为新文件。
+脚本保留原权重、论文和实验记录字节，覆盖修复源码并重新生成全文件 SHA256SUMS.txt，不依赖 .tmp 或 release-assets。
+本次新增核验见 repair_validation/；历史 output/download_verification.json 仍是原发布时的记录。
 
 Seeds: 42, 43, 44. Runs are interleaved by seed, not selected by performance.
 Metrics are percentages; sample standard deviation is computed across three training seeds.
